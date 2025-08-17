@@ -7,7 +7,18 @@ import { getSocket } from './socket';
 const ENV_URL = (import.meta.env.VITE_SERVER_URL as string | undefined);
 // Default to :8080 on the same host for local development
 const DEFAULT_URL = `${location.protocol}//${location.hostname}:8080`;
-const SERVER_URL = (ENV_URL && ENV_URL.trim()) || DEFAULT_URL;
+let RAW_SERVER_URL = (ENV_URL && ENV_URL.trim()) || DEFAULT_URL;
+// Normalize and auto-upgrade to HTTPS if the page is HTTPS to avoid mixed-content blocking
+try {
+  const tmp = new URL(RAW_SERVER_URL, window.location.origin);
+  if (window.location.protocol === 'https:' && tmp.protocol === 'http:') {
+    tmp.protocol = 'https:';
+  }
+  RAW_SERVER_URL = tmp.toString().replace(/\/$/, '');
+} catch (e) {
+  console.warn('[web] Invalid VITE_SERVER_URL, using default', RAW_SERVER_URL, e);
+}
+const SERVER_URL = RAW_SERVER_URL;
 if (!ENV_URL || !ENV_URL.trim()) {
   console.warn('[web] VITE_SERVER_URL not set or empty; defaulting to', SERVER_URL);
 }
@@ -217,15 +228,22 @@ export default function App() {
 
   const onStartCollab = async () => {
     try {
-      const res = await fetch(`${SERVER_URL}/collab/create`, { method: 'POST' });
-      const data = await res.json();
-      if (!data?.ok) throw new Error('Failed to create code');
+      const url = `${SERVER_URL}/collab/create`;
+      const res = await fetch(url, { method: 'POST' });
+      if (!res.ok) {
+        const text = await res.text().catch(() => '(no body)');
+        throw new Error(`create failed: HTTP ${res.status} ${res.statusText} body=${text?.slice(0, 200)}`);
+      }
+      const data = await res.json().catch((e) => {
+        throw new Error(`invalid JSON from ${url}: ${e}`);
+      });
+      if (!data?.ok) throw new Error('API returned ok=false');
       setCollabCode(data.code);
       setCodeExpiresAt(data.expiresAt ?? null);
       enableCollabAndJoin(data.code);
     } catch (e) {
       alert('Could not start collaboration');
-      console.error(e);
+      console.error('[collab:create] error using SERVER_URL=', SERVER_URL, e);
     }
   };
 
