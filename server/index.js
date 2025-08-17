@@ -7,9 +7,23 @@ const { Server } = require('socket.io');
 const { MongoClient } = require('mongodb');
 
 const PORT = process.env.PORT || 8080;
-const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || '*')
-  .split(',')
-  .map((s) => s.trim())
+const RAW_ALLOWED = process.env.ALLOWED_ORIGINS || '*';
+let ALLOWED_ORIGINS = [];
+try {
+  const parsed = JSON.parse(RAW_ALLOWED);
+  if (Array.isArray(parsed)) {
+    ALLOWED_ORIGINS = parsed;
+  } else if (typeof parsed === 'string') {
+    ALLOWED_ORIGINS = parsed.split(/[\s,]+/);
+  }
+} catch {
+  ALLOWED_ORIGINS = RAW_ALLOWED.split(/[\s,]+/);
+}
+ALLOWED_ORIGINS = ALLOWED_ORIGINS
+  .map((s) => String(s).trim())
+  // strip surrounding single/double quotes, brackets, and trailing slashes
+  .map((s) => s.replace(/^['"\[\(]+|['"\]\)]+$/g, ''))
+  .map((s) => s.replace(/\/$/, ''))
   .filter(Boolean);
 const RESET_TOKEN = process.env.RESET_TOKEN || '';
 const MONGO_URI = process.env.MONGO_URI || '';
@@ -75,26 +89,39 @@ app.use(
   })
 );
 
-// Build regex patterns for wildcard origin support (e.g., https://*.vercel.app)
-const originPatterns = ALLOWED_ORIGINS.map((pat) => {
-  if (pat === '*') return /.*/;
-  const escaped = pat.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const regexStr = '^' + escaped.replace(/\\\*/g, '.*') + '$';
-  try {
-    return new RegExp(regexStr);
-  } catch {
-    return new RegExp('^' + escaped + '$');
+// Build regex patterns for wildcard origin support (full origin and hostname forms)
+const originPatterns = [];
+const hostPatterns = [];
+for (const pat of ALLOWED_ORIGINS) {
+  if (pat === '*') {
+    originPatterns.push(/.*/);
+    hostPatterns.push(/.*/);
+    continue;
   }
-});
+  if (/^https?:\/\//i.test(pat)) {
+    // Treat as full origin pattern, e.g., https://*.vercel.app
+    const escaped = pat.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regexStr = '^' + escaped.replace(/\\\*/g, '.*') + '$';
+    try { originPatterns.push(new RegExp(regexStr, 'i')); } catch { originPatterns.push(new RegExp('^' + escaped + '$', 'i')); }
+  } else {
+    // Treat as hostname pattern, e.g., *.vercel.app or collaborativewhiteboard-bice.vercel.app
+    const escaped = pat.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regexStr = '^' + escaped.replace(/\\\*/g, '.*') + '$';
+    try { hostPatterns.push(new RegExp(regexStr, 'i')); } catch { hostPatterns.push(new RegExp('^' + escaped + '$', 'i')); }
+  }
+}
 
 const corsOptions = {
   origin: (origin, cb) => {
     // Allow server-to-server, curl, or same-origin requests with no Origin header
     if (!origin) return cb(null, true);
-    // Allow if any pattern matches
-    if (originPatterns.some((re) => re.test(origin))) {
+    let host = '';
+    try { host = new URL(origin).host; } catch {}
+    // Allow if any pattern matches origin or hostname
+    if (originPatterns.some((re) => re.test(origin)) || hostPatterns.some((re) => re.test(host))) {
       return cb(null, true);
     }
+    console.warn('[cors] blocked', { origin, host, ALLOWED_ORIGINS });
     return cb(new Error('Not allowed by CORS: ' + origin));
   },
   methods: ['GET', 'POST', 'OPTIONS'],
@@ -270,4 +297,5 @@ server.listen(PORT, async () => {
     console.warn('[mongo] optional init failed:', e.message);
   }
   console.log(`CollabBoard Lite server listening on :${PORT}`);
+  console.log('[cors] ALLOWED_ORIGINS (sanitized):', ALLOWED_ORIGINS);
 });
