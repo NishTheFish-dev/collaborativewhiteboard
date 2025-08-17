@@ -5,7 +5,7 @@ let socket: Socket | null = null;
 export function getSocket(url: string) {
   if (!socket) {
     socket = io(url, {
-      transports: ['websocket'],
+      transports: ['websocket', 'polling'],
     });
   }
   return socket;

@@ -4,9 +4,12 @@ import Board from './components/Board';
 import { Element, RemoteCursor, Tool } from './types';
 import { getSocket } from './socket';
 
-const SERVER_URL = (import.meta.env.VITE_SERVER_URL as string) ?? `${location.protocol}//${location.hostname}:8080`;
-if (!import.meta.env.VITE_SERVER_URL) {
-  console.warn('[web] VITE_SERVER_URL not set; defaulting to', SERVER_URL);
+const ENV_URL = (import.meta.env.VITE_SERVER_URL as string | undefined);
+// Default to :8080 on the same host for local development
+const DEFAULT_URL = `${location.protocol}//${location.hostname}:8080`;
+const SERVER_URL = (ENV_URL && ENV_URL.trim()) || DEFAULT_URL;
+if (!ENV_URL || !ENV_URL.trim()) {
+  console.warn('[web] VITE_SERVER_URL not set or empty; defaulting to', SERVER_URL);
 }
 const RESET_TOKEN = import.meta.env.VITE_RESET_TOKEN as string | undefined;
 
@@ -46,6 +49,17 @@ export default function App() {
 
     socket.on('connect', () => {
       // connected
+    });
+
+    // Helpful diagnostics
+    socket.on('connect_error', (err: any) => {
+      console.error('[socket] connect_error', err?.message || err);
+    });
+    socket.on('error', (err: any) => {
+      console.error('[socket] error', err);
+    });
+    socket.on('reconnect_error', (err: any) => {
+      console.error('[socket] reconnect_error', err?.message || err);
     });
 
     socket.on('init', (payload: { elements: Element[] }) => {
