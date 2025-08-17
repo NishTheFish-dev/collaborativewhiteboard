@@ -1,5 +1,5 @@
 /*
-  Content-Security-Policy: frame-ancestors 'self' https://nishpallapu.com https://www.nishpallapu.com;
+  Content-Security-Policy: frame-ancestors 'self' https://nishpallapu.com https://www.nishpallapu.com https://nishpallapu.netlify.app;
   Referrer-Policy: no-referrer-when-downgrade
   X-Content-Type-Options: nosniff
   X-XSS-Protection: 1; mode=block
