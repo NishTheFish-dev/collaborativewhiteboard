@@ -75,12 +75,27 @@ app.use(
   })
 );
 
+// Build regex patterns for wildcard origin support (e.g., https://*.vercel.app)
+const originPatterns = ALLOWED_ORIGINS.map((pat) => {
+  if (pat === '*') return /.*/;
+  const escaped = pat.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const regexStr = '^' + escaped.replace(/\\\*/g, '.*') + '$';
+  try {
+    return new RegExp(regexStr);
+  } catch {
+    return new RegExp('^' + escaped + '$');
+  }
+});
+
 const corsOptions = {
   origin: (origin, cb) => {
-    if (!origin || ALLOWED_ORIGINS.includes('*') || ALLOWED_ORIGINS.includes(origin)) {
+    // Allow server-to-server, curl, or same-origin requests with no Origin header
+    if (!origin) return cb(null, true);
+    // Allow if any pattern matches
+    if (originPatterns.some((re) => re.test(origin))) {
       return cb(null, true);
     }
-    return cb(new Error('Not allowed by CORS'));
+    return cb(new Error('Not allowed by CORS: ' + origin));
   },
   methods: ['GET', 'POST', 'OPTIONS'],
   credentials: false,

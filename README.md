@@ -10,11 +10,10 @@ A modern, real-time collaborative whiteboard embedded in my portfolio at https:/
 - PNG export of the canvas
 - Board reset (protected by token)
 - Embeddable via iframe with CSP `frame-ancestors`
-- Optional MongoDB persistence for room state
+- MongoDB persistence for room state
 - Responsive UI (Tailwind CSS) and dark theme
 
 ## Technologies Used
 - Frontend: React + TypeScript, Vite, Tailwind CSS, React Konva, socket.io-client
-- Backend: Node.js, Express, Socket.io, Helmet, optional MongoDB Atlas
-- Deploy: Server on Render/Railway; Web on Netlify (with iframe headers)
-
+- Backend: Node.js, Express, Socket.io, Helmet, MongoDB Atlas
+- Deploy: Server on Render; Web on Vercel (with iframe headers)
