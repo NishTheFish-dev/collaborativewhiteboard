@@ -217,7 +217,7 @@ export default function Board({
   const rendered = useMemo(() => elements, [elements]);
 
   return (
-    <div ref={containerRef} className="w-full h-[calc(100vh-116px)] bg-white">
+    <div ref={containerRef} className="w-full h-full bg-white">
       <Stage
         ref={(node: any) => {
           stageRef.current = node;
