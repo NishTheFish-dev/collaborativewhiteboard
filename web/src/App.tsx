@@ -258,20 +258,20 @@ export default function App() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="border-b border-white/10 bg-[#1e1e1e]/90 backdrop-blur">
-        <div className="mx-auto max-w-7xl px-4 py-3 flex flex-wrap md:flex-nowrap items-center gap-2 md:gap-3">
+      <header className="relative z-50 border-b border-white/10 bg-[#1e1e1e]/90 backdrop-blur">
+        <div className="mx-auto max-w-7xl px-4 py-2 flex flex-nowrap items-center gap-2 whitespace-nowrap overflow-x-auto">
           <div className="font-semibold text-lg">Collaborative Whiteboard</div>
-          <div className="text-sm opacity-75">You are {name}</div>
+          <div className="text-xs opacity-75">You are {name}</div>
           <div className="ml-auto flex items-center gap-2">
             {collab ? (
-              <div className="text-sm px-2 py-1 rounded border border-emerald-500/40 bg-emerald-500/10">
+              <div className="text-xs px-2 py-1 rounded border border-emerald-500/40 bg-emerald-500/10">
                 Collaborating • Code {collabCode ?? '—'}
               </div>
             ) : (
               <>
                 <button
                   onClick={onStartCollab}
-                  className="px-3 py-1 rounded border text-sm bg-blue-600/20 border-blue-500/40 hover:bg-blue-600/30"
+                  className="px-2.5 py-1 rounded border text-xs bg-blue-600/20 border-blue-500/40 hover:bg-blue-600/30"
                 >
                   Start collaboration
                 </button>
@@ -280,11 +280,11 @@ export default function App() {
                   onChange={(e) => setJoinCode(e.target.value.replace(/\D/g, ''))}
                   maxLength={6}
                   placeholder="Enter code"
-                  className="w-24 px-2 py-1 rounded bg-slate-900 border border-slate-800 text-sm"
+                  className="w-24 px-2 py-1 rounded bg-slate-900 border border-slate-800 text-xs"
                 />
                 <button
                   onClick={onJoinWithCode}
-                  className="px-3 py-1 rounded border text-sm bg-slate-800 border-slate-700 hover:bg-slate-700"
+                  className="px-2.5 py-1 rounded border text-xs bg-slate-800 border-slate-700 hover:bg-slate-700"
                 >
                   Join
                 </button>
