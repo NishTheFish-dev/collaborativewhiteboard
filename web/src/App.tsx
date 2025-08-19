@@ -257,7 +257,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen min-h-[100dvh] grid grid-rows-[auto_1fr_auto]">
       <header className="relative z-50 border-b border-white/10 bg-[#1e1e1e]/90 backdrop-blur">
         <div className="mx-auto max-w-7xl px-4 py-2 flex flex-nowrap items-center gap-2 whitespace-nowrap overflow-x-auto">
           <div className="font-semibold text-lg">Collaborative Whiteboard</div>
@@ -304,7 +304,7 @@ export default function App() {
         </div>
       </header>
 
-      <main className="flex-1 min-h-0 overflow-hidden">
+      <main className="min-h-0 overflow-hidden">
         <Board
           elements={elements}
           setElements={setElements}
