@@ -10,7 +10,7 @@ A modern, real-time collaborative whiteboard embedded in my portfolio at https:/
 - PNG export of the canvas
 - Board reset (protected by token)
 - Embeddable via iframe with CSP `frame-ancestors`
-- MongoDB persistence for room state
+- MongoDB persistence for room state if needed
 - Responsive UI (Tailwind CSS) and dark theme
 
 ## Technologies Used
