@@ -149,7 +149,7 @@ async function initMongo() {
   const db = mongoClient.db(MONGO_DB);
   collection = db.collection(MONGO_COLLECTION);
   await collection.createIndex({ boardId: 1 }, { unique: true });
-  console.log('[mongo] connected and state loaded');
+  console.log('[mongo] connected and state loaded!');
 }
 
 async function loadRoomState(roomId) {
